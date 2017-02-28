@@ -2,7 +2,8 @@
 -- tar -xf mnist.t7.tgz
 
 require 'cunn'
-require 'cudnn'
+--require 'cudnn'
+cudnn = nn
 require 'image'
 require 'optim'
 paths.dofile('Optim.lua')
@@ -25,7 +26,9 @@ model:add(nn.LogSoftMax())
 
 if use_stn then 
    require 'stn'
-   paths.dofile('spatial_transformer.lua')
+   --paths.dofile('spatial_transformer.lua')
+   --print('using only rotations')
+   paths.dofile('spatial_transformer_rotation.lua')
    model:insert(spanet,1)
 end
 
@@ -37,7 +40,7 @@ optimizer = nn.Optim(model, optimState)
 
 local w1,w2
 
-for epoch=1,30 do
+for epoch=1,300 do
    model:training()
    local trainError = 0
    for batchidx = 1, datasetTrain:getNumBatches() do
@@ -57,7 +60,7 @@ for epoch=1,30 do
       local pred = model:forward(inputs:cuda())
       valError = valError + criterion:forward(pred, labels:cuda())
       _, preds = pred:max(2)
-      correct = correct + preds:eq(labels:cuda()):sum()
+      correct = correct + preds:float():eq(labels):sum()
       all = all + preds:size(1)
    end
    print('validation error : ', valError / datasetVal:getNumBatches())
@@ -69,5 +72,11 @@ for epoch=1,30 do
       w2=image.display({image=tranet:get(1).output, nrow=16, legend='Inputs, epoch : '..epoch, win=w2})
    end
    
+   print('rotation angles:')
+   angles = locnet:get(10).output:clone():double()
+   angles = angles:view(-1, 16)
+   print(math.deg(angles))
+   print('press a key')
+   io.read()
 end
 
