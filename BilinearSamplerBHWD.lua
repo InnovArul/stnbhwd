@@ -40,14 +40,18 @@ function BilinearSamplerBHWD:check(input, gradOutput)
    end
 end
 
-local function addOuterDim(t)
-   local sizes = t:size()
-   local newsizes = torch.LongStorage(sizes:size()+1)
-   newsizes[1]=1
-   for i=1,sizes:size() do
-      newsizes[i+1]=sizes[i]
-   end
-   return t:view(newsizes)
+local function addOuterDimIfNeeded(t)
+  if t:nDimension()==3 then
+     local sizes = t:size()
+     local newsizes = torch.LongStorage(sizes:size()+1)
+     newsizes[1]=1
+     for i=1,sizes:size() do
+        newsizes[i+1]=sizes[i]
+     end
+     return t:view(newsizes)
+  else
+    return t
+  end
 end
 
 function BilinearSamplerBHWD:updateOutput(input)
@@ -55,13 +59,9 @@ function BilinearSamplerBHWD:updateOutput(input)
    local _grids = input[2]
 
    local inputImages, grids
-   if _inputImages:nDimension()==3 then
-      inputImages = addOuterDim(_inputImages)
-      grids = addOuterDim(_grids)
-   else
-      inputImages = _inputImages
-      grids = _grids
-   end
+
+   inputImages = addOuterDimIfNeeded(_inputImages)
+   grids = addOuterDimIfNeeded(_grids)
 
    local input = {inputImages, grids}
 
