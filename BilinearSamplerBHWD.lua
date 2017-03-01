@@ -83,15 +83,9 @@ function BilinearSamplerBHWD:updateGradInput(_input, _gradOutput)
 	local _grids = _input[2]
 
    local inputImages, grids, gradOutput
-   if _inputImages:nDimension()==3 then
-      inputImages = addOuterDim(_inputImages)
-      grids = addOuterDim(_grids)
-      gradOutput = addOuterDim(_gradOutput)
-   else
-      inputImages = _inputImages
-      grids = _grids
-      gradOutput = _gradOutput
-   end
+   inputImages = addOuterDimIfNeeded(_inputImages)
+   grids = addOuterDimIfNeeded(_grids)
+   gradOutput = addOuterDimIfNeeded(_gradOutput)
 
    local input = {inputImages, grids}
 
